@@ -108,16 +108,12 @@ The application uses a relational database with the following core models:
         ```
 
 4.  **Install Dependencies:**
-    *   First, ensure you have a `requirements.txt` file. If not, create one from the imports in `app.py` or generate it if you have the environment set up:
-        ```bash
-        # Make sure Flask, Flask-SQLAlchemy, Flask-Migrate, Werkzeug, Matplotlib are installed
-        pip freeze > requirements.txt
-        ```
+
     *   Install from the requirements file:
         ```bash
         pip install -r requirements.txt
         ```
-        *(Make sure `requirements.txt` includes Flask, Flask-SQLAlchemy, Flask-Migrate, Werkzeug, Matplotlib)*
+      
 
 5.  **Database Setup:**
     *   Initialize the migration environment (run only once per project):
