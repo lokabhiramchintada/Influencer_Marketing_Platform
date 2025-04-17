@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sponsor Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background-color: #f1f1f1;
+            padding: 10px 0;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0 10px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: black;
+            padding: 5px 10px;
+        }
+
+        nav ul li a.active {
+            background-color: lightblue;
+            border-radius: 5px;
+        }
+
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        section {
+            margin-top: 20px;
+        }
+
+        .campaign, .request {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+
+        .campaign button, .request button {
+            margin-left: 10px;
+            padding: 6px 33px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button.view {
+            background-color: #FFD700;
+                    }
+
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 40px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="date"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        button[type="submit"] {
+            background-color: #EE4B2B;
+            color: white;
+            padding: 5px 35px;
+            height: 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            margin-left: 0px;
+            
+        }
+
+
+        .active-campaigns ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .active-campaigns li {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 5px;
+        }
+
+        .active-campaigns .actions {
+            display: flex;
+        }
+
+        .active-campaigns .actions button,
+        .active-campaigns .actions form button {
+            color: #fff;
+            padding: 7px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+            width: 100px;
+            text-align:center;
+            font-size:14px;
+        }
+
+        .active-campaigns .actions button.view {
+            background-color: #FFD700;
+            color: #000;
+       
+        }
+
+        .active-campaigns .actions button.edit {
+            background-color: #1F51FF;
+        }
+
+        .active-campaigns .actions form button[type="submit"] {
+            background-color: #EE4B2B;
+            color: #fff;
+            height:30px;
+        }
+
+        .new-requests .request form button[type="submit"].accept { 
+            background-color: #32CD30; 
+        }
+
+        Delete{
+            height: 20%;
+        }
+
+        
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('sponsor_profile',username=username) }}" class="active">Profile</a></li>
+                <li><a href="{{ url_for('sponsor_campaigns') }}">Campaigns</a></li>
+                <li><a href="{{ url_for('sponsor_find_page') }}">Find</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h1>Welcome, {{ username }}</h1>
+        <section class="active-campaigns">
+            
+                <h2>Active Campaigns:</h2>
+                {% if campaigns %}
+                <ul>
+                    {% for campaign in campaigns %}
+                        <li>
+                            <span>{{ campaign.title }} - {{ campaign.niche }}</span>
+                            <div class="actions">
+                                <button class="view" onclick="viewCampaignDetails('{{ campaign.id }}')">View</button>
+                                <button class="edit" onclick="openEditModal('{{ campaign.id }}', '{{ campaign.title }}', '{{ campaign.description }}', '{{ campaign.date.strftime('%Y-%m-%d') }}', '{{ campaign.budget }}')">Edit</button>
+                                <form method="POST" action="{{ url_for('delete_campaign', campaign_id=campaign.id) }}" style="display: inline-block;">
+                                    <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this campaign?')">Delete</button>
+                                </form>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No campaigns found.</p>
+            {% endif %}
+            </section>
+
+            <section class="new-requests">
+                <h2>New Requests:</h2>
+                {% if ad_requests %}
+                    {% for ad_request in ad_requests %}
+                        <div class="request">
+                            <span>
+                                Campaign: {{ ad_request.campaign.title }} | 
+                                Influencer:
+                                {% if ad_request.influencer_id in influencer_names %}
+                                    {{ influencer_names[ad_request.influencer_id] }}
+                                {% else %}
+                                    None
+                                {% endif %} 
+                            </span>
+                            <div class="actions">
+                                <button class="view" onclick="viewCampaignDetails('{{ ad_request.campaign.id }}')">View</button>
+                                <!-- Accept Button for Sponsor -->
+                                <form method="POST" action="{{ url_for('sponsor_accept_ad_request', request_id=ad_request.id) }}" style="display: inline-block;">
+                                    <button type="submit" class="accept" name="accept">Accept</button>
+                                </form>
+                                <!-- Reject Button for Sponsor -->
+                                <form method="POST" action="{{ url_for('sponsor_reject_ad_request', request_id=ad_request.id) }}" style="display: inline-block;">
+                                    <button type="submit" class="reject" name="reject" onclick="return confirm('Are you sure you want to reject this request?')">Reject</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No new requests.</p>
+                {% endif %}
+              </section>
+        
+        <!-- The Modal for viewing campaign details -->
+        <div id="campaignDetailsModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeCampaignDetailsModal()">×</span>
+                <h2 id="campaignTitle"></h2>
+                <p id="campaignDescription"></p>
+                <p id="campaignDate"></p>
+                <p id="campaignBudget"></p>
+            </div>
+        </div>
+        <!-- The Modal for editing campaign -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">×</span>
+                <h2>Edit Campaign</h2>
+                <form id="editForm" method="POST" action="">
+                    <input type="hidden" id="campaign_id" name="campaign_id">
+                    <label for="title">Title:</label>
+                    <input type="text" id="editTitle" name="title" required>
+                    <label for="description">Description:</label>
+                    <textarea id="editDescription" name="description" required></textarea>
+        
+                    <label for="date">Date:</label>
+                    <input type="date" id="editDate" name="date" required min="{{ date.today().isoformat() }}">   
+        
+                    <label for="budget">Budget:</label>
+                    <input type="text" id="editBudget" name="budget" required>
+        
+                    <button type="submit">Save Changes</button>
+                </form>
+            </div>
+        </div>
+        <!-- Ad Request Details Modal -->
+
+<!-- View Campaign Details Modal -->
+<div id="viewCampaignDetailsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeViewCampaignDetailsModal()">×</span>
+        <h2>Campaign Details</h2>
+        <p><strong>Campaign Title:</strong> <span id="viewCampaignTitle"></span></p>
+        <p><strong>Description:</strong> <span id="viewCampaignDescription"></span></p>
+        <p><strong>Niche:</strong> <span id="viewCampaignNiche"></span></p>
+        <p><strong>Date:</strong> <span id="viewCampaignDate"></span></p>
+        <p><strong>Budget:</strong> <span id="viewCampaignBudget"></span></p>
+
+        <h2>Ad Request Details</h2>
+        <p><strong>Ad Name:</strong> <span id="viewAdName"></span></p>
+        <p><strong>Influencer:</strong> <span id="viewInfluencerUsername"></span></p>
+        <p><strong>Description:</strong> <span id="viewAdDescription"></span></p>
+        <p><strong>Terms:</strong> <span id="viewAdTerms"></span></p>
+        <p><strong>Payment:</strong> <span id="viewPayment"></span></p>
+        <p><strong>Status:</strong> <span id="viewStatus"></span></p> 
+    </div>
+</div>
+    </main>
+    <script>
+        function openEditModal(id, title, description, date, budget) {
+            document.getElementById('editTitle').value = title;
+            document.getElementById('editDescription').value = description;
+            document.getElementById('editDate').value = date;
+            document.getElementById('editBudget').value = budget;
+            document.getElementById('campaign_id').value = id;  
+            document.getElementById('editForm').action = `/sponsor/campaign/edit/${id}`;  
+            document.getElementById('editModal').style.display = "block";
+        }
+        function closeModal() {
+            document.getElementById('editModal').style.display = "none";
+        }
+    
+        function viewAdRequest(requestId) {
+            fetch(`/sponsor/ad_request/${requestId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('modalAdName').textContent = data.ad_name;
+                    document.getElementById('modalCampaignTitle').textContent = data.campaign_title;
+                    document.getElementById('modalInfluencerUsername').textContent = data.influencer_username;
+                    document.getElementById('modalAdDescription').textContent = data.ad_description;
+                    document.getElementById('modalAdTerms').textContent = data.ad_terms;
+                    document.getElementById('modalPayment').textContent = data.payment;
+                    
+                    document.getElementById('adRequestDetailsModal').style.display = 'block';
+                });
+        }
+
+        function closeViewCampaignDetailsModal() {
+            document.getElementById('viewCampaignDetailsModal').style.display = 'none';
+        }
+    
+        function viewCampaignDetails(campaignId) {
+            console.log("Campaign ID:", campaignId);
+            fetch(`/sponsor/campaign/${campaignId}/requests`)
+                .then(response => response.json())
+                .then(adRequests => {
+                    // Fetch campaign details (assuming you have a route for this)
+                    fetch(`/sponsor/campaign/${campaignId}`)
+                        .then(response => response.json())
+                        .then(campaign => {
+                            console.log("Campaign Data:", campaign); 
+                            document.getElementById('viewCampaignTitle').textContent = campaign.title;
+                            document.getElementById('viewCampaignDescription').textContent = campaign.description;
+                            document.getElementById('viewCampaignNiche').textContent = campaign.niche;
+                            document.getElementById('viewCampaignDate').textContent = campaign.date;
+                            document.getElementById('viewCampaignBudget').textContent = campaign.budget;
+        
+                            // Set default ad request values to "None"
+                            document.getElementById('viewAdName').textContent = 'None';
+                            document.getElementById('viewInfluencerUsername').textContent = 'None';
+                            document.getElementById('viewAdDescription').textContent = 'None';
+                            document.getElementById('viewAdTerms').textContent = 'None';
+                            document.getElementById('viewPayment').textContent = 'None';
+                            document.getElementById('viewStatus').textContent = 'None';
+        
+                            if (adRequests.length > 0) {
+                                // Display the first ad request details if available
+                                const adRequest = adRequests[0];
+                                document.getElementById('viewAdName').textContent = adRequest.ad_name;
+                                document.getElementById('viewInfluencerUsername').textContent = adRequest.influencer_username;
+                                document.getElementById('viewAdDescription').textContent = adRequest.ad_description;
+                                document.getElementById('viewAdTerms').textContent = adRequest.ad_terms;
+                                document.getElementById('viewPayment').textContent = adRequest.payment;
+                                document.getElementById('viewStatus').textContent = adRequest.status; 
+                            } 
+        
+                            // Show the modal
+                            document.getElementById('viewCampaignDetailsModal').style.display = 'block';  // Corrected ID
+                        })
+                        .catch(error => {
+                            console.error('Error fetching campaign details:', error);
+                        });
+                })
+                .catch(error => {
+                    console.error('Error fetching ad requests:', error);
+                });
+        }
+          
+          function closeViewRequestModal() {
+            document.getElementById('viewRequestModal').style.display = 'none';
+          }
+          
+        window.onclick = function(event) {
+            var editModal = document.getElementById('editModal');
+            var campaignDetailsModal = document.getElementById('campaignDetailsModal'); 
+            var viewRequestModal = document.getElementById('viewRequestModal');
+            var viewCampaignDetailsModal = document.getElementById('viewCampaignDetailsModal'); // Get the modal element
+            var adRequestDetailsModal = document.getElementById('adRequestDetailsModal');
+    
+            if (event.target == editModal) {
+                editModal.style.display = "none";
+            } else if (event.target == campaignDetailsModal) { 
+                campaignDetailsModal.style.display = "none"; 
+            } else if(event.target == viewRequestModal){
+                viewRequestModal.style.display = "none";
+            } else if (event.target == viewCampaignDetailsModal) { 
+                viewCampaignDetailsModal.style.display = "none";
+            } else if (event.target == adRequestDetailsModal) {
+                adRequestDetailsModal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background-color: #f1f1f1;
+            padding: 10px 0;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0 10px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: black;
+            padding: 5px 10px;
+        }
+
+        nav ul li a.active {
+            background-color: lightblue;
+            border-radius: 5px;
+        }
+
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-filter {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .search-filter input[type="text"] {
+            padding: 10px;
+            width: 70%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .search-filter button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        .actions {
+            white-space: nowrap;
+        }
+
+        .actions button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .view {
+            background-color: #ffd700; /* Yellow */
+        }
+
+        .flag {
+            background-color: #f1948a; /* Red */
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            width: 200px;
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('admin_dashboard') }}" class="active">Info</a></li>
+                <li><a href="{{ url_for('admin_stats') }}">Stats</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Welcome, Admin</h1>
+        
+            <h2>Admin Search</h2>
+            <div class="search-filter">
+                <input type="text" id="search" placeholder="Search...">
+                <button onclick="searchItems()">Search</button>
+                <select id="filter" onchange="searchItems()">
+                    <option value="all">All</option>
+                    <option value="sponsors">Sponsors</option>
+                    <option value="influencers">Influencers</option>
+                    <option value="campaigns">Campaigns</option>
+                </select>
+            </div>
+            <div id="results"></div>
+        </div>
+    </main>
+
+    <script>
+        function searchItems() {
+            const searchQuery = document.getElementById('search').value;
+            const filter = document.getElementById('filter').value;
+
+            fetch(`/admin/search?q=${searchQuery}&filter=${filter}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayResults(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = ''; // Clear previous results
+
+            if (data.length === 0) {
+                resultsDiv.innerHTML = '<p>No results found.</p>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            const headerRow = table.insertRow();
+            headerRow.insertCell().textContent = 'Name';
+            headerRow.insertCell().textContent = 'Details';
+            headerRow.insertCell().textContent = 'Actions';
+
+            data.forEach(item => {
+                const row = table.insertRow();
+                row.dataset.itemId = item.id;
+                row.insertCell().textContent = item.name;
+                row.insertCell().textContent = item.details;
+
+                const actionsCell = row.insertCell();
+                actionsCell.classList.add('actions');
+
+                const viewButton = document.createElement('button');
+                viewButton.textContent = 'View';
+                viewButton.classList.add('view');
+                viewButton.onclick = () => viewItem(item.type, item.id);
+                actionsCell.appendChild(viewButton);
+
+                const flagButton = document.createElement('button');
+                flagButton.textContent = 'Flag';
+                flagButton.classList.add('flag');
+                flagButton.onclick = () => flagItem(item.type, item.id);
+                actionsCell.appendChild(flagButton);
+            });
+
+            resultsDiv.appendChild(table);
+        }
+
+        function flagItem(itemType, itemId) {
+            fetch(`/admin/flag/${itemType}/${itemId}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    searchItems(); // Refresh the results
+                })
+                .catch(error => {
+                    console.error('Error flagging item:', error);
+                });
+        }
+
+        function viewItem(itemType, itemId) {
+            fetch(`/admin/view/${itemType}/${itemId}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayPopup(data.name, data.details);
+                })
+                .catch(error => {
+                    console.error('Error viewing item:', error);
+                });
+        }
+
+        function displayPopup(name, details) {
+            const popup = document.createElement('div');
+            popup.classList.add('popup');
+            popup.innerHTML = `
+                <h3>${name}</h3>
+                <p>${details}</p>
+                <button onclick="closePopup()">Close</button>
+            `;
+            document.body.appendChild(popup);
+        }
+
+        function closePopup() {
+            const popup = document.querySelector('.popup');
+            if (popup) {
+                document.body.removeChild(popup);
+            }
+        }
+    </script>
+</body>
+</html>

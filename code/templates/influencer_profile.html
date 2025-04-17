@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Influencer Profile</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dashboard {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+            border: 1px solid #ddd;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .header nav a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #000;
+            font-size: 16px;
+        }
+
+        .header nav a:hover {
+            text-decoration: underline;
+        }
+
+        .content {
+            display: flex;
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 300px;
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .profile-pic {
+            width: 150px;
+            height: 150px;
+            background-color: #98D08F;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+        }
+
+        .main {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .campaign, .request {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .view-btn, .accept-btn, .reject-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .view-btn {
+            background-color: #FFD700;
+            color: #000;
+        }
+
+        .accept-btn {
+            background-color: #90EE90;
+            color: #000;
+        }
+
+        .reject-btn {
+            background-color: #FF6347;
+            color: #fff;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgb(0,0,0); 
+            background-color: rgba(0,0,0,0.4); 
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%; 
+        }
+        
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+
+.modal-content button { /* Style for all buttons in the modal */
+    background-color: #FFD700; /* Default to yellow like the View button */
+    color: #000; 
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 5px; 
+}
+
+.modal-content button:hover {
+    opacity: 0.8;
+}
+
+.modal-content button[onclick="acceptRequest()"] { /* Style for Accept button */
+    background-color:#32CD30; /* Green */
+    color: #fff;
+}
+
+
+.modal-content button[onclick="rejectRequest()"] { /* Style for Reject */
+    background-color: #EE4B2B; /* Red */
+    color: #fff;
+}
+
+.request {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto; 
+    gap: 10px;
+    align-items: center; 
+}
+
+.request span { 
+    grid-column: 1; 
+}
+
+.request .view-btn, 
+.request .accept-btn, 
+.request .reject-btn {
+    grid-column: span 1; 
+}
+    </style>
+</head>
+<body>
+
+
+    <div class="dashboard">
+        <div class="header">
+            <h1>{{ username }}'s Profile</h1>
+            <nav>
+                <a href="{{ url_for('influencer_profile') }}" class="active">Profile</a>
+                <a href="{{ url_for('influencer_find_page') }}">Find</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </nav>
+        </div>
+        <div class="content">
+            <div class="sidebar">
+                <div class="profile-pic"></div>
+            </div>
+            <div class="main">
+                <p>Welcome {{ username }}</p>
+
+                <h2>Active Campaigns:</h2>
+                {% if active_campaigns %}
+                    <ul>
+                    {% for ad_request in active_campaigns %} 
+                        <li class="campaign">
+                            <span>{{ ad_request.campaign.title }} - {{ ad_request.ad_name }}</span>
+                            <button class="view-btn" onclick="openModal('{{ ad_request.ad_name }}', 
+                                                                '{{ ad_request.campaign.title }}', 
+                                                                '{{ ad_request.ad_description }}', 
+                                                                '{{ ad_request.ad_terms }}', 
+                                                                '{{ ad_request.payment }}')">View</button>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No active campaigns found.</p>
+                {% endif %}
+
+                <h2>New Requests:</h2> 
+                {% if ad_requests %}
+                    <ul>
+                    {% for ad_request in ad_requests %}
+                        <li class="request">
+                            <span>{{ ad_request.ad_name }} - {{ ad_request.campaign.title }}</span> 
+                            <button class="view-btn" onclick="openModal(
+                                '{{ ad_request.ad_name }}',
+                                '{{ ad_request.campaign.title }}', 
+                                '{{ ad_request.ad_description }}',
+                                '{{ ad_request.ad_terms }}',
+                                '{{ ad_request.payment }}',
+                                '{{ ad_request.id }}'
+                            )">View</button>
+                            <form method="POST" action="{{ url_for('accept_ad_request', request_id=ad_request.id) }}">
+                                <button type="submit" class="accept-btn">Accept</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('reject_ad_request', request_id=ad_request.id) }}">
+                                <button type="submit" class="reject-btn">Reject</button>
+                            </form>
+
+
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No new ad requests found.</p>
+{% endif %}
+            </div>
+        </div>
+
+        <div class="modal" id="adRequestModal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal()">×</span>
+                <h2 id="modalAdName"></h2>
+                <p>Campaign: <span id="modalCampaignTitle"></span></p>
+                <p>Description: <span id="modalAdDescription"></span></p>
+                <p>Terms: <span id="modalAdTerms"></span></p>
+                <p>Payment: <span id="modalPayment"></span></p>
+        
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('adRequestModal');
+        const closeBtn = document.querySelector('.close-btn'); 
+
+        function openModal(adName, campaignTitle, adDescription, adTerms, payment,requestId) {
+            document.getElementById('modalAdName').textContent = adName;
+            document.getElementById('modalCampaignTitle').textContent = campaignTitle;
+            document.getElementById('modalAdDescription').textContent = adDescription;
+            document.getElementById('modalAdTerms').textContent = adTerms;
+            document.getElementById('modalPayment').textContent = payment;
+            modal.style.display = 'block';
+        }
+
+        function acceptRequest() {
+           
+            console.log("Accept button clicked!");
+            
+            closeModal(); 
+        }
+    
+
+    
+        function rejectRequest() {
+
+            console.log("Reject button clicked!");
+            closeModal();
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

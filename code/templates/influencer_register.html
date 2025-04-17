@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Influencer Registration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .registration-form {
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      background-color: #fff;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .platform-presence {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .platform-button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 3px;
+      background-color: #f0f0f0;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px; 
+    }
+
+    button[type="submit"] {
+      background-color: #4CAF50;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .nam {
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="registration-form">
+    <h2>Influencer Registration</h2>
+    <form action="/register/influencer" method="post">
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" placeholder="User_01" required>
+
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required>
+
+      <p class="nam">Platform-Presence</p>
+
+      <div class="platform-presence">
+        <label>
+          <input type="checkbox" name="platform_presence" value="YouTube"> YouTube
+        </label>
+        <label>
+          <input type="checkbox" name="platform_presence" value="Twitter"> Twitter
+        </label>
+        <label>
+          <input type="checkbox" name="platform_presence" value="Instagram"> Instagram
+        </label>
+      </div>
+
+      <button type="submit">Register</button>
+    </form>
+  </div>
+</body>
+</html>

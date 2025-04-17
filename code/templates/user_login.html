@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .button-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Adds space between buttons */
+        }
+
+        .button-container button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 120px; /* Fixed width for buttons */
+            text-align: center; /* Center text */
+        }
+
+        .button-container button:hover {
+            background-color: #45a049; 
+        }
+
+        form {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        button[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%; /* Make the login button full width */
+            margin-top: 10px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #45a049; /* Slightly darker green for hover effect */
+        }
+
+        .back-to-home {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .back-to-home a {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 3px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-to-home a:hover {
+            background-color: #0056b3; /* Darker blue for hover effect */
+        }
+        .input[type="radio" i]{
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container">
+        <!-- Buttons to navigate to registration pages -->
+        <button type="button" onclick="navigateToPage('/user/influencer_register')">Influencer</button>
+        <button type="button" onclick="navigateToPage('/user/sponsor_register')">Sponsor</button>
+    </div>
+    
+    <div class="login-form">
+        
+        <form action="/user/login" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <!-- Radio buttons for choosing influencer or sponsor -->
+            <label>User Type:</label>
+            <input type="radio" id="influencer" name="user_type" value="influencer" checked>
+            <label for="influencer">Influencer</label>
+
+            <input type="radio" id="sponsor" name="user_type" value="sponsor">
+            <label for="sponsor">Sponsor</label>
+
+            <button type="submit">Login</button>
+        </form>
+        <div class="back-to-home">
+            <a href="/">Back to Home</a>
+        </div>
+
+        <!-- Display flash messages -->
+        {% with messages = get_flashed_messages(with_categories=True) %}
+          {% if messages %}
+            <ul class="flashes">
+              {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+    </div>
+
+    <script>
+        function navigateToPage(pageUrl) {
+            window.location.href = pageUrl;
+        }
+    </script>
+</body>
+</html>

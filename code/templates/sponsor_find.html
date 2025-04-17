@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Campaigns and Influencers</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background-color: #f1f1f1;
+            padding: 10px 0;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0 10px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: black;
+            padding: 5px 10px;
+        }
+
+        nav ul li a.active {
+            background-color: lightblue;
+            border-radius: 5px;
+        }
+
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-filter {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .search-filter input[type="text"] {
+            padding: 10px;
+            width: 70%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .search-filter button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .item span {
+            flex-grow: 1;
+        }
+
+        .item button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .item .view {
+            background-color: #ffd700;
+        }
+
+        .item .request {
+            background-color: #90ee90;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('sponsor_profile', username=session.get('username')) }}">Profile</a></li>
+                <li><a href="{{ url_for('sponsor_campaigns') }}">Campaigns</a></li>
+                <li><a href="{{ url_for('sponsor_find_page') }}" class="active">Find</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h1>Find Campaigns and Influencers</h1>
+        <div class="search-filter">
+            <form method="POST" action="{{ url_for('sponsor_find_page') }}">
+                <label for="search_type">Search Type:</label>
+                <select id="search_type" name="search_type">
+                    <option value="campaigns" {% if search_type == 'campaigns' %}selected{% endif %}>Campaigns</option>
+                    <option value="influencers" {% if search_type == 'influencers' %}selected{% endif %}>Influencers</option>
+                </select>
+                <input type="text" id="keyword" name="keyword" placeholder="Search" required>
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        <div class="content">
+            {% if results %}
+                {% for result in results %}
+                    <div class="item">
+                        <span>
+                            {% if search_type == 'campaigns' %}
+                                {{ result.title }} | {{ result.date }}
+                            {% elif search_type == 'influencers' %}
+                                {{ result.username }} | {{ result.platform_presence }}
+                            {% endif %}
+                        </span>
+                        
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No results found.</p>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

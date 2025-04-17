@@ -1,0 +1,6 @@
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+Werkzeug
+SQLAlchemy
+matplotlib

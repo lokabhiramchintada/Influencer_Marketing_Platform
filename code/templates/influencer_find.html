@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Campaigns</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background-color: #f1f1f1;
+            padding: 10px 0;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0 10px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: black;
+            padding: 5px 10px;
+        }
+
+        nav ul li a.active {
+            background-color: lightblue;
+            border-radius: 5px;
+        }
+
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-filter {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .search-filter input[type="text"] {
+            padding: 10px;
+            width: 70%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .search-filter button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .item span {
+            flex-grow: 1;
+        }
+
+        .item button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .item .view {
+            background-color: #ffd700;
+        }
+
+        .item .request {
+            background-color: #90ee90;
+        }
+
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        /* Modal content */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 20%;
+            max-width: 600px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Close button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        /* Close button hover effects */
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Form styling within modal */
+        .modal-content form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Form elements */
+        .modal-content label {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .modal-content input[type="text"],
+        .modal-content textarea,
+        .modal-content input[type="number"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .modal-content textarea {
+            resize: vertical;
+            height: 18px;
+        }
+
+        /* Submit button */
+        .modal-content button[type="submit"] {
+            margin-top: 10px;
+            padding: 2px 5px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .modal-content button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('influencer_profile') }}">Profile</a></li>
+                <li><a href="{{ url_for('influencer_find_page') }}" class="active">Find</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h1>Find Public Campaigns</h1> 
+        <div class="search-filter">
+            <form method="POST" action="{{ url_for('influencer_find_page') }}">
+                <input type="text" name="search" placeholder="Search by niche..." required>
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        <div class="content">
+            {% if campaigns %}
+                {% for campaign in campaigns %}
+                    <div class="item">
+                        <span>{{ campaign.title }} - {{ campaign.niche }}</span>
+
+                        <button class="view" onclick="viewCampaignDetails('{{ campaign.id }}', '{{ campaign.title }}', '{{ campaign.description }}', '{{ campaign.date.strftime('%Y-%m-%d') }}', '{{ campaign.budget }}')">View</button>
+                        <button class="request" onclick="openRequestModal('{{ campaign.id }}', '{{ campaign.title }}')">Request</button> 
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No public campaigns found.</p>
+            {% endif %}
+        </div>
+
+        <div class="modal" id="campaignDetailsModal">
+            <div class="modal-content">
+                <span class="close" onclick="closeCampaignDetailsModal()">×</span>
+                <h2 id="campaignTitle"></h2>
+                <p id="campaignDescription"></p>
+                <p id="campaignDate"></p>
+                <p id="campaignBudget"></p>
+            </div>
+        </div>
+        <div class="modal" id="requestModal">
+            <div class="modal-content">
+                <span class="close" onclick="closeRequestModal()">×</span>
+                <h2>Submit Ad Request</h2>
+                <form method="POST" action="{{ url_for('submit_ad_request') }}">
+                    <input type="hidden" id="campaignRequestId" name="campaign_id">
+                    <label for="adName">Ad Name:</label>
+                    <input type="text" id="adName" name="ad_name" required>
+                    <label for="adDescription">Ad Description:</label>
+                    <textarea id="adDescription" name="ad_description" required></textarea>
+                    <label for="adTerms">Ad Terms:</label>
+                    <textarea id="adTerms" name="ad_terms" required></textarea>
+                    <label for="payment">Payment:</label>
+                    <input type="number" id="payment" name="payment" required>
+                    <button type="submit">Submit Request</button>
+                </form>
+            </div>
+        </div>
+    </main>
+    <script>
+        function openRequestModal(campaignId, campaignTitle) {
+            document.getElementById('campaignRequestId').value = campaignId;
+            document.getElementById('requestModal').style.display = "block";
+        }
+
+        function closeRequestModal() {
+            document.getElementById('requestModal').style.display = "none";
+        }
+
+
+
+        function viewCampaignDetails(id, title, description, date, budget){
+            document.getElementById('campaignTitle').textContent = title;
+            document.getElementById('campaignDescription').textContent = "Description: " + description;
+            document.getElementById('campaignDate').textContent = "Date: " + date;
+            document.getElementById('campaignBudget').textContent = "Budget: " + budget;
+            document.getElementById('campaignDetailsModal').style.display = "block";
+        }
+
+        function closeCampaignDetailsModal() {
+            document.getElementById('campaignDetailsModal').style.display = "none";
+        }
+    </script>
+</body>
+</html>

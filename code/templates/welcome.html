@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appdev1</title>
+    <style>
+        /* General styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        /* Navbar styling */
+        .navbar {
+            background-color: #333;
+            color: white;
+            display: flex;
+            justify-content: center; /* Center the title */
+            align-items: center;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            text-align: center;
+        }
+
+        /* Body styling */
+        .body-content {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .scrolling-containers {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 20px 0;
+            justify-content: center;
+        }
+
+        .container-box {
+            min-width: 300px; 
+            height: 350px; 
+            margin: 0 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+            cursor: pointer;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .container-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .container-box img {
+            width: 80px; 
+            height: 80px; 
+            margin-bottom: 10px; 
+        }
+
+        .container-box button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .container-box button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Media queries for responsiveness */
+        @media screen and (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="navbar-title">Influencer Engagement and Sponsorship Coordination Platform</div>
+</div>
+
+<div class="body-content">
+    <h2>Welcome</h2>
+    <div class="scrolling-containers">
+        <div class="container-box">
+            <h2>USER</h2>
+            <img src="https://res.cloudinary.com/duld0gqqe/image/upload/v1723153801/rbjz7frmaocqz2ygl9x3.png" alt="User">
+            <p>If you are a user? Click here to login</p>
+            <button onclick="window.location.href='user/login'">Click Here</button>
+        </div>
+        <div class="container-box">
+            <h2>ADMIN</h2>
+            <img src="https://res.cloudinary.com/duld0gqqe/image/upload/v1723153749/uai7hjpxpv1isjp6v8vp.png" alt="Admin">
+            <p>If you are an admin? Click here to login</p>
+           
+            <button onclick="window.location.href='admin/login'">Click Here</button>
+
+        </div>
+        <!-- Add more containers as needed -->
+    </div>
+</div>
+
+<script>
+    function navigateTo(url) {
+        window.location.href = url;
+    }
+</script>
+
+</body>
+</html>

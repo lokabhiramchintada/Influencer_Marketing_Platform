@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaigns</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background-color: #f1f1f1;
+            padding: 10px 0;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0 10px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: black;
+            padding: 5px 10px;
+        }
+
+        nav ul li a.active {
+            background-color: lightblue;
+            border-radius: 5px;
+        }
+
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .add-campaign {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .add-campaign span {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .add-campaign img {
+            width: 30px;
+            height: 30px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 5px;
+            width: 300px;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+        }
+
+        .modal-content input,
+        .modal-content textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .modal-content button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal-content .cancel-btn {
+            background-color: #f1948a;
+        }
+
+        .modal-content .add-btn {
+            background-color: #58d68d;
+        }
+
+        .campaign {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            display: inline-block;
+            width: 200px;
+            vertical-align: top;
+            cursor: pointer;
+        }
+
+        .campaign img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .ad-request-actions {
+            margin-left: 10px;
+        }
+        .ad-request-actions button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .ad-request-actions .edit-btn {
+            background-color: #f9e79f; 
+        }
+        .ad-request-actions .delete-btn {
+            background-color: #f1948a; 
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('sponsor_profile', username=session.get('username')) }}">Profile</a></li>
+                <li><a href="{{ url_for('sponsor_campaigns') }}" class="active">Campaigns</a></li>
+                <li><a href="{{ url_for('sponsor_find_page') }}">Find</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <!-- Display list of campaigns -->
+        <div> 
+            {% if campaigns %}
+                {% for campaign in campaigns %}
+                    <div class="campaign" onclick="showCampaignDetails('{{ campaign.id }}', '{{ campaign.title }}', '{{ campaign.visibility }}', '{{ campaign.budget }}')">
+                        <h2>{{ campaign.title }}</h2>
+                        <p>{{ campaign.description }}</p>
+                        <h3>Ad Requests</h3>
+                        <ul>
+                            {% for ad_request in campaign.ad_requests %}
+                                <li>
+                                    <span>{{ ad_request.ad_name }} - {{ ad_request.status }}</span>
+                                    <div class="ad-request-actions">
+                                        <button class="edit-btn" onclick="openEditAdRequestModal(
+                                            '{{ ad_request.id }}',
+                                            '{{ ad_request.ad_name }}', 
+                                            '{{ ad_request.ad_description }}',
+                                            '{{ ad_request.ad_terms }}',
+                                            '{{ ad_request.payment }}',
+                                            '{{ ad_request.influencer_id }}',
+                                            '{{ ad_request.influencer.username if ad_request.influencer else '' }}' 
+                                        )">Edit</button>
+                                        <form method="POST" action="{{ url_for('delete_ad_request', request_id=ad_request.id) }}" style="display: inline-block;">
+                                            <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this ad request?')">Delete</button>
+                                        </form>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No campaigns found.</p>
+            {% endif %}
+        </div>
+
+        <div class="add-campaign" id="addCampaignBtn">
+            <span>Add Campaign</span>
+        </div>
+        <div class="modal" id="editAdRequestModal">
+            <div class="modal-content">
+                <form method="POST" action="{{ url_for('update_ad_request') }}" id="editAdRequestForm">
+                    <h2>Edit Ad Request</h2>
+                    <input type="hidden" id="editRequestId" name="request_id">
+    
+                    <label for="editAdName">Ad Name:</label><br>
+                    <input type="text" id="editAdName" name="ad_name" required><br>
+    
+                    <label for="editAdDescription">Ad Description:</label><br>
+                    <textarea id="editAdDescription" name="ad_description" required></textarea><br>
+    
+                    <label for="editAdTerms">Ad Terms:</label><br>
+                    <textarea id="editAdTerms" name="ad_terms" required></textarea><br>
+    
+                    <label for="editPayment">Payment: </label><br>
+                    <input type="number" id="editPayment" name="payment" required><br><br>
+    
+                    <label for="editInfluencerSearch">Search Influencer:</label><br>
+                    <input type="text" id="editInfluencerSearch" placeholder="Search by username...">
+                    <div id="editInfluencerSearchResults"></div>
+                    <div id="editSelectedInfluencer"></div> <button type="submit" class="add-btn">Save Changes</button>
+                    <button type="button" class="cancel-btn" onclick="closeEditAdRequestModal()">Cancel</button>
+                </form>
+            </div>
+        </div>
+    
+        <!-- Unique IDs for modals -->
+        <div class="modal" id="campaignDetailsModal">
+            <div class="modal-content">
+                <h2 id="campaignTitle"></h2>
+                <p>Budget: <span id="campaignBudget"></span></p>
+                <button type="button" class="add-btn" id="createAdRequestBtn" style="display: none;">Create Ad Request</button>
+                <button type="button" class="cancel-btn" id="detailsCancelBtn">Close</button>
+            </div>
+        </div>
+        
+        <div class="modal" id="addAdRequestModal">
+            <div class="modal-content">
+                <form method="POST" action="{{ url_for('create_ad_request') }}" id="adRequestForm"> 
+                    <h2>Create Ad Request</h2>
+                    <input type="hidden" id="campaignId" name="campaign_id">
+                    
+    
+                    <label for="ad_name">Ad Name:</label><br>
+                    <input type="text" id="ad_name" name="ad_name" required><br>
+    
+                    <label for="ad_description">Ad Description:</label><br>
+                    <textarea id="ad_description" name="ad_description" required></textarea><br>
+    
+                    <label for="ad_terms">Ad Terms:</label><br>
+                    <textarea id="ad_terms" name="ad_terms" required></textarea><br>
+    
+                    <label for="payment">Payment: </label><br>
+                    <input type="number" id="payment" name="payment" required><br><br>
+    
+                    <label for="influencerSearch">Search Influencer:</label><br>
+                    <input type="text" id="influencerSearch" placeholder="Search by username...">
+                    <div id="influencerSearchResults"></div> <div id="selectedInfluencer"></div>
+    
+                    <button type="submit" class="add-btn">Add</button>
+                    <button type="button" class="cancel-btn" id="adRequestCancelBtn">Cancel</button>
+                </form>
+            </div>
+        </div>
+
+
+        
+        <!-- Add campaign modal -->
+        <div class="modal" id="addCampaignModal">
+            <div class="modal-content">
+                <form method="POST" action="{{ url_for('sponsor_campaigns') }}">
+                    <h2>Add Campaign</h2>
+                    <input type="hidden" id="campaign_id" name="campaign_id">
+                    
+                    <label for="title">Title:</label><br>
+                    <input type="text" id="title" name="title" required><br>
+
+                    <label for="description">Description:</label><br>
+                    <textarea id="description" name="description" required></textarea><br>
+
+                    <label for="image">Image URL:</label><br>
+                    <input type="text" id="image" name="image" required><br>
+
+                    <label for="niche">Niche:</label><br>
+                    <input type="text" id="niche" name="niche" required><br>
+
+                    <label for="date">Date:</label><br>
+                    <input type="date" id="date" name="date" required min="{{ date.today().isoformat() }}">
+                    
+                    <label for="budget">Budget:</label><br>
+                    <input type="number" id="budget" name="budget" required><br>
+
+                    <label for="visibility">Visibility:</label><br>
+                    <select id="visibility" name="visibility" required>
+                        <option value="public">Public</option>
+                        <option value="private">Private</option>
+                    </select><br>
+
+                    <button type="submit" class="add-btn">Add</button>
+                    <button type="button" class="cancel-btn" id="addCampaignCancelBtn">Cancel</button>
+                </form>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul>
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    
+    </main>
+    <script>
+        const addCampaignBtn = document.getElementById('addCampaignBtn');
+        const addCampaignModal = document.getElementById('addCampaignModal');
+        const addCampaignCancelBtn = document.getElementById('addCampaignCancelBtn');
+        const campaignDetailsModal = document.getElementById('campaignDetailsModal');
+        const detailsCancelBtn = document.getElementById('detailsCancelBtn');
+        const createAdRequestBtn = document.getElementById('createAdRequestBtn');
+        const addAdRequestModal = document.getElementById('addAdRequestModal');
+        const adRequestCancelBtn = document.getElementById('adRequestCancelBtn');
+        const campaignIdInput = document.getElementById('campaignId');      
+        const editAdRequestModal = document.getElementById('editAdRequestModal');
+        const influencerSearch = document.getElementById('influencerSearch');
+        const influencerSearchResults = document.getElementById('influencerSearchResults');
+        const selectedInfluencer = document.getElementById('selectedInfluencer'); 
+        const adRequestForm = document.getElementById('adRequestForm'); 
+        const editAdRequestForm = document.getElementById('editAdRequestForm');
+        const editInfluencerSearch = document.getElementById('editInfluencerSearch');
+        const editInfluencerSearchResults = document.getElementById('editInfluencerSearchResults');
+        const editSelectedInfluencer = document.getElementById('editSelectedInfluencer'); 
+ 
+
+        addCampaignBtn.addEventListener('click', () => {
+            addCampaignModal.style.display = 'flex';
+        });
+
+        addCampaignCancelBtn.addEventListener('click', () => {
+            addCampaignModal.style.display = 'none';
+        });
+
+        detailsCancelBtn.addEventListener('click', () => {
+            campaignDetailsModal.style.display = 'none';
+        });
+
+        createAdRequestBtn.addEventListener('click', () => {
+            campaignDetailsModal.style.display = 'none';
+            addAdRequestModal.style.display = 'flex';
+        });
+
+        adRequestCancelBtn.addEventListener('click', () => {
+            addAdRequestModal.style.display = 'none';
+        });
+
+        window.onclick = function(event) {
+            if (event.target === addCampaignModal) {
+                addCampaignModal.style.display = 'none';
+            } else if (event.target === campaignDetailsModal) {
+                campaignDetailsModal.style.display = 'none';
+            } else if (event.target === addAdRequestModal) {
+                addAdRequestModal.style.display = 'none';
+            }
+        };
+        influencerSearch.addEventListener('input', () => {
+            const searchTerm = influencerSearch.value;
+            if (searchTerm.length > 2) { 
+                fetch(`/search_influencers?q=${searchTerm}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        displaySearchResults(data);
+                    });
+            } else {
+                influencerSearchResults.innerHTML = '';
+            }
+        });
+
+        function displaySearchResults(influencers) {
+            influencerSearchResults.innerHTML = ''; 
+            if (influencers.length === 0) {
+                influencerSearchResults.innerHTML = '<p>No influencers found.</p>';
+                return;
+            }
+
+            const ul = document.createElement('ul');
+            influencers.forEach(influencer => {
+                const li = document.createElement('li');
+                li.textContent = influencer.username;
+                li.addEventListener('click', () => {
+                    selectInfluencer(influencer.id, influencer.username); 
+                });
+                ul.appendChild(li);
+            });
+            influencerSearchResults.appendChild(ul);
+        }
+
+        function selectInfluencer(influencerId, influencerUsername) {
+            selectedInfluencer.innerHTML = ''; 
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'influencer_id'; 
+            hiddenInput.value = influencerId;
+            adRequestForm.appendChild(hiddenInput); 
+
+            const selectedDisplay = document.createElement('p');
+            selectedDisplay.textContent = `Selected: ${influencerUsername}`;
+            selectedInfluencer.appendChild(selectedDisplay);
+            influencerSearchResults.innerHTML = '';
+        }
+        function showCampaignDetails(campaignId, title, visibility, budget) {
+            document.getElementById('campaignTitle').textContent = title;
+            document.getElementById('campaignBudget').textContent = budget;
+            campaignIdInput.value = campaignId;
+            campaignDetailsModal.style.display = 'flex';
+
+            if (visibility === 'private') {
+                createAdRequestBtn.style.display = 'inline-block';
+            } else {
+                createAdRequestBtn.style.display = 'none';
+            }
+        }
+
+        function openEditAdRequestModal(requestId, adName, adDescription, adTerms, payment, influencerId = null, influencerUsername = null) {
+            console.log("Edit button clicked! Request ID:", requestId);
+            document.getElementById('editRequestId').value = requestId;
+            document.getElementById('editAdName').value = adName;
+            document.getElementById('editAdDescription').value = adDescription;
+            document.getElementById('editAdTerms').value = adTerms;
+            document.getElementById('editPayment').value = payment;
+ 
+            if (influencerId && influencerUsername) {
+                displaySelectedInfluencer(influencerId, influencerUsername);
+            } else {
+                editSelectedInfluencer.innerHTML = ''; 
+            }
+ 
+            editAdRequestModal.style.display = 'flex';
+ 
+            
+            editInfluencerSearch.addEventListener('input', () => {
+                const searchTerm = editInfluencerSearch.value;
+                if (searchTerm.length > 2) {
+                    fetch(`/search_influencers?q=${searchTerm}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            displayEditSearchResults(data);
+                        });
+                } else {
+                    editInfluencerSearchResults.innerHTML = '';
+                }
+            });
+        }
+ 
+        function displayEditSearchResults(influencers) {
+            editInfluencerSearchResults.innerHTML = '';
+            if (influencers.length === 0) {
+                editInfluencerSearchResults.innerHTML = '<p>No influencers found.</p>';
+                return;
+            }
+            const ul = document.createElement('ul');
+            influencers.forEach(influencer => {
+                const li = document.createElement('li');
+                li.textContent = influencer.username;
+                li.addEventListener('click', () => {
+                    displaySelectedInfluencer(influencer.id, influencer.username);
+                });
+                ul.appendChild(li);
+            });
+            editInfluencerSearchResults.appendChild(ul);
+        }
+ 
+        function displaySelectedInfluencer(influencerId, influencerUsername) {
+            editSelectedInfluencer.innerHTML = ''; 
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'influencer_id';
+            hiddenInput.value = influencerId;
+            editAdRequestForm.appendChild(hiddenInput);
+ 
+            const selectedDisplay = document.createElement('p');
+            selectedDisplay.textContent = `Selected: ${influencerUsername}`;
+            editSelectedInfluencer.appendChild(selectedDisplay);
+            editInfluencerSearchResults.innerHTML = ''; 
+        }
+ 
+ 
+        function closeEditAdRequestModal() {
+            editAdRequestModal.style.display = 'none';
+            editInfluencerSearch.value = ''; 
+            editInfluencerSearchResults.innerHTML = ''; 
+        }
+ 
+    </script>
+</body>
+</html>
